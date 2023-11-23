@@ -202,6 +202,7 @@ for i in players['Minuti_gol']:
 slot={'1/22':goal_scored_in_1_22, '23/45':goal_scored_in_23_45, '46/67':goal_scored_in_46_67,'68/90':goal_scored_in_68_90}
 plt.bar(slot.keys(), slot.values())
 plt.title('Gol in time slots')
+plt.show()
 
 #HOW MANY TIMES ITALY FINISH 1-2-3-4?
 wcups
