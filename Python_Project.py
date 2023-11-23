@@ -28,40 +28,35 @@ print(matches.describe().T.round(2))
 print(players.describe().T.round(2))
 print(wcups.describe().T.round(2))
 
-#GOAL SCORED FOR EACH WORLD CUP
+#%% GOAL SCORED FOR EACH WORLD CUP
 plt.plot(wcups['Year'], wcups['GoalsScored'])
 plt.xticks(wcups['Year'], rotation = 'vertical')
 plt.yticks(range(70, 175, 10))
 plt.grid()
+plt.title('GOAL SCORED FOR EACH WORLD CUP')
 plt.show()
 
-#COUNTRY THAT WON THE MOST WORLD CUPS
+#%% COUNTRY THAT WON THE MOST WORLD CUPS
 wcups = wcups.replace('Germany FR', 'Germany')
 plt.hist(wcups['Winner'],bins=15,edgecolor="black")
 plt.xticks(wcups['Winner'], rotation = 'vertical')
 plt.yticks(range(0, 10, 1))
-#plt.title()
+plt.title('Who won most World Cups?')
 plt.grid(True)
 plt.show()
 
-#%% idea escludere mondiali antecedenti al 1938
-print(matches[matches['Year'] > 1938].isnull().sum(), '\n')
-print(players.isnull().sum(), '\n')
-print(wcups.isnull().sum())
-
-# AGGIUGNO LA COLONNA YEAR NEL DATAFRAME PLAYERS
+#%% ADD THE 'YEAR' COLUMN IN THE 'PLAYERS' DATAFRAME
 players = pd.merge(players, matches[['MatchID', 'Year']], on='MatchID', how='left')
 
-#%% NUMERI DI MAGLIA PIU' UTILIZZATI DAL 1954 AL 2014
+#%% MOST USED SHIRT NUMBERS FROM 1954 TO 2014
 x = players[players['Year']>1950]
 
 plt.hist(x['Shirt Number'], bins = 50)
 plt.xticks(players['Shirt Number'].unique())
-#plt.ylim(1530, 1560)
 plt.grid()
+plt.title('MOST USED SHIRT NUMBERS FROM 1954 TO 2014')
+comment = 'Although we see very particular numbers in national leagues, \nFIFA regulations state: "The shirt numbers of players must \ncorrespond to those indicated in the official team list (1 to 23)." \nSince Qatar 2022, the list is extended to 26 player'
 plt.show()
-
-print(x)
 
 #CONTO QUANTI REFEREE CI SONO PER OGNI NAZIONE
 x['Shirt Number'].value_counts()
