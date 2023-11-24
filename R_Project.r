@@ -174,5 +174,18 @@ matches$Cards = card_per_match[as.character(matches$MatchID)]
 print(matches)
 
 #%% TOTAL NUMBER OF CARDS GIVEN BY REFEREES OF A GIVEN NATIONALITY
+#PRENDE IN CONSIDERAZIONE TUTTI GLI ARBITRI 
+agg_data = matches %>%
+  group_by(Referee) %>%
+  summarize(TotalCards = sum(Cards))
+
+
+ggplot(agg_data, aes(x = Referee, y = TotalCards)) +
+  geom_bar(stat = "identity", fill = "blue", color = "black") +
+  ggtitle('Total Number Of Cards Given By Referees Of A Given Nationality') +
+  xlab('Referee Nationality') +
+  ylab('Cards') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
 
 
