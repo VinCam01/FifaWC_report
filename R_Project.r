@@ -42,7 +42,7 @@ ggplot(wcups, aes(x = Year, y = GoalsScored)) +
         panel.grid =element_blank())
 
 #COUNTRY THAT WON MOST WORLD CUPS
-wcups$Winner <- ifelse(wcups$Winner == 'Germany FR', 'Germany', wcups$Winner)
+wcups$Winner = ifelse(wcups$Winner == 'Germany FR', 'Germany', wcups$Winner)
 ggplot(wcups, aes(x = Winner, fill = Winner)) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -51,13 +51,31 @@ ggplot(wcups, aes(x = Winner, fill = Winner)) +
   scale_fill_manual(values = c("Brazil" = "yellow", "Germany" = "red", "Italy" = "green", "Argentina" = "skyblue")) +
   theme_minimal()
 
+#%% TREND OF ATTENDANCE
+mean_attendance = matches %>%
+  group_by(Year) %>%
+  summarise(mean_attendance = mean(Attendance, na.rm = TRUE))
+
+mean_attendance
+
+rownames(mean_attendance) = NULL
+
+ggplot(mean_attendance, aes(x = Year, y = mean_attendance)) +
+  geom_point(color="skyblue") + 
+  geom_line(color="skyblue")+
+  ggtitle("Trend of Attendance") +
+  xlab("Year") +
+  ylab("Attendance") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  theme_minimal()  
+
 # ADD THE 'YEAR' COLUMN IN THE 'PLAYERS' DATAFRAME
-players <- players %>%
+players = players %>%
   left_join(matches %>% select(MatchID, Year), by = "MatchID")
 players
 
 #%% MOST USED SHIRT NUMBERS FROM 1954 TO 2014
-x <- players[players$Year > 1950, ]
+x = players[players$Year > 1950, ]
 x
 
 #VEDERE SE METTERE NUMERI SOTTO
@@ -68,12 +86,12 @@ hist(x$Shirt.Number, breaks = 50, col = 'lightblue', border = 'black',
 table(x$Shirt.Number)
 
 #we modify the column in order to have just NAT in the Referee column
-matches$Referee <- str_extract(matches$Referee, "\\((.*?)\\)")
-matches$Referee <- gsub("\\(|\\)", "", matches$Referee)
+matches$Referee = str_extract(matches$Referee, "\\((.*?)\\)")
+matches$Referee = gsub("\\(|\\)", "", matches$Referee)
 print(matches)
 
 #HOW MANY REFEREE OF EACH NATION
-ref_nationality <- table(matches$Referee)
+ref_nationality = table(matches$Referee)
 print(ref_nationality)
 
 #vediamo quali sono le nazionalità degli arbitri più frequenti, escludendo quelle minori di 5
@@ -92,17 +110,17 @@ barplot(ref_nationality_filtered,
 
 
 #Total number of goals scored in games refereed by a referee from a particular nation
-dic <- list()
+dic = list()
 for (referee in unique(matches$Referee)) {
-  matches_referee <- subset(matches, Referee == referee)
+  matches_referee = subset(matches, Referee == referee)
   if (nrow(matches_referee) > 5) {
-    total_goals <- sum(matches_referee$Home.Team.Goals + matches_referee$Away.Team.Goals)
-    dic[[referee]] <- total_goals
+    total_goals = sum(matches_referee$Home.Team.Goals + matches_referee$Away.Team.Goals)
+    dic[[referee]] = total_goals
   }
 }
 print(dic)
 
-df <- data.frame(Referee = names(dic), Goals = unlist(dic), stringsAsFactors = FALSE)
+df = data.frame(Referee = names(dic), Goals = unlist(dic), stringsAsFactors = FALSE)
 
 barplot(df$Goals, names.arg = df$Referee,
         col = "skyblue",
@@ -113,7 +131,7 @@ barplot(df$Goals, names.arg = df$Referee,
         cex.names = 0.7)
 
 #%% Mean of goal scored in games directed by a referee from a particular nation
-media_goals_per_nazione <- df %>%
+media_goals_per_nazione = df %>%
   group_by(Referee) %>%
   summarize(MediaGoals = mean(Goals))
 
@@ -126,7 +144,7 @@ ggplot(media_goals_per_nazione, aes(x = Referee, y = MediaGoals)) +
 
 
 #%% CREATE THE COLUMN 'Yellow or Red' IN THE PLAYERS DATAFRAME
-lst <- numeric(length(players$Event))
+lst = numeric(length(players$Event))
 for (i in seq_along(players$Event)) {
   if (is.character(players$Event[i])) {
     if ('Y' %in% strsplit(players$Event[i], '')[[1]] || 'R' %in% strsplit(players$Event[i], '')[[1]]) {
@@ -138,24 +156,23 @@ for (i in seq_along(players$Event)) {
     lst[i] <- 0
   }
 }
-players$Yellow_or_Red <- lst
+players$Yellow_or_Red = lst
 table(players$Yellow_or_Red)
 #MI VENGONO MENO 0 E MENO 1 ???
 
 #%% CREATE THE COLUMN 'Cards' IN THE MATCHES DATAFRAME
-card_per_match <- numeric(length(players$MatchID))
+card_per_match = numeric(length(players$MatchID))
 for (i in seq_along(players$MatchID)) {
   if (!(players$MatchID[i] %in% names(card_per_match))) {
-    card_per_match[[as.character(players$MatchID[i])]] <- players$Yellow_or_Red[i]
+    card_per_match[[as.character(players$MatchID[i])]] = players$Yellow_or_Red[i]
   } else {
-    card_per_match[[as.character(players$MatchID[i])]] <- card_per_match[[as.character(players$MatchID[i])]] + players$Yellow_or_Red[i]
+    card_per_match[[as.character(players$MatchID[i])]] = card_per_match[[as.character(players$MatchID[i])]] + players$Yellow_or_Red[i]
   }
 }
 
-matches$Cards <- card_per_match[as.character(matches$MatchID)]
+matches$Cards = card_per_match[as.character(matches$MatchID)]
 print(matches)
 
 #%% TOTAL NUMBER OF CARDS GIVEN BY REFEREES OF A GIVEN NATIONALITY
-
 
 
