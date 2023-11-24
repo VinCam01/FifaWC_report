@@ -51,6 +51,17 @@ plt.title('Who Won Most World Cups?')
 plt.grid(True)
 plt.show()
 
+#%% TREND OF ATTENDANCE
+mean_attendance = matches.groupby('Year')['Attendance'].mean().reset_index()
+
+plt.plot(mean_attendance['Year'], mean_attendance['Attendance'], marker='o')
+plt.title('Trend of Attendance')
+plt.xlabel('Year')
+plt.ylabel('Attendance')
+plt.xticks(mean_attendance['Year'], rotation = 'vertical')
+plt.grid(True)
+plt.show()
+
 #%% ADD THE 'YEAR' COLUMN IN THE 'PLAYERS' DATAFRAME
 players = pd.merge(players, matches[['MatchID', 'Year']], on='MatchID', how='left')
 
