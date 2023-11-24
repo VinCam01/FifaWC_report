@@ -31,7 +31,7 @@ print(players.describe().T.round(2))
 print(wcups.describe().T.round(2))
 
 #%% GOAL SCORED FOR EACH WORLD CUP
-plt.plot(wcups['Year'], wcups['GoalsScored'])
+plt.plot(wcups['Year'], wcups['GoalsScored'], marker='o', markerfacecolor='gold', lw = 3, color='green')
 plt.xlabel('World Cup')
 plt.ylabel('Number of goal')
 plt.xticks(wcups['Year'], rotation = 'vertical')
@@ -54,7 +54,7 @@ plt.show()
 #%% TREND OF ATTENDANCE
 mean_attendance = matches.groupby('Year')['Attendance'].mean().reset_index()
 
-plt.plot(mean_attendance['Year'], mean_attendance['Attendance'], marker='o')
+plt.plot(mean_attendance['Year'], mean_attendance['Attendance'], marker='o', markerfacecolor='black', lw = 3, color='royalblue')
 plt.title('Trend of Attendance')
 plt.xlabel('Year')
 plt.ylabel('Attendance')
@@ -88,14 +88,15 @@ ref_nationality = matches['Referee'].value_counts()
 ref_nationality
 
 ref_nationality = ref_nationality[ref_nationality>5]   #We only show values greater than 5 in the graph to make it more readable 
-plt.bar(ref_nationality.index, ref_nationality)
+colori_sfumati = [plt.cm.viridis(i / len(ref_nationality)) for i in range(len(ref_nationality))]
+plt.bar(ref_nationality.index, ref_nationality, color=colori_sfumati)
 plt.xlabel('Referee Nationality')
 plt.ylabel('Number of matches')
 plt.xticks(rotation=90, ha='right', fontsize=5)
 plt.title('How Many Matches Have Referees Of Each Nationality Directed?')
 plt.show()
 
-#%% Total number of goals scored in games directed by a referee from a particular nation
+#%% TOTAL NUMBER OF GOALS SCORED IN GAMES DIRECTED BY A REFEREE FROM A PARTICULAR NATION
 dic = {}
 for i in range(len(matches['Referee'])):
   if matches['Referee'][i] in ref_nationality:
@@ -104,7 +105,8 @@ for i in range(len(matches['Referee'])):
     else:
       dic[matches['Referee'][i]] = dic[matches['Referee'][i]] + matches['Home Team Goals'][i] + matches['Away Team Goals'][i]
 
-plt.bar(dic.keys(), dic.values())
+colori_sfumati = [plt.cm.brg(i / len(ref_nationality)) for i in range(len(ref_nationality))]
+plt.bar(dic.keys(), dic.values(), color=colori_sfumati)
 plt.xlabel('Referee Nationality')
 plt.ylabel('Goal Scored ')
 plt.title('Total Number Of Goals Scored In Games Directed By A Referee From A Particular Nation')
@@ -112,12 +114,13 @@ plt.grid()
 plt.xticks(rotation=90, ha='right', fontsize=5)
 plt.show()
 
-#%% Mean of goal scored in games directed by a referee from a particular nation
+#%% MEAN OF GOAL SCORED IN GAMES DIRECTED BY A REFEREE FROM A PARTICULAR NATION
 mean_gol_by_ref_nat = {}
 for i in dic.keys():
   mean_gol_by_ref_nat[i] = (dic[i] / ref_nationality[i]).round(2)
 
-plt.bar(mean_gol_by_ref_nat.keys(), mean_gol_by_ref_nat.values())
+colori_sfumati = [plt.cm.ocean(i / len(ref_nationality)) for i in range(len(ref_nationality))]
+plt.bar(mean_gol_by_ref_nat.keys(), mean_gol_by_ref_nat.values(), color=colori_sfumati)
 plt.xlabel('Referee Nationality')
 plt.ylabel('Goal per match')
 plt.title('Mean Of Goal Scored In Games Directed By A Referee From A Particular Nation')
@@ -165,7 +168,8 @@ for i in range(len(matches['Referee'])):
     else:
       dic[matches['Referee'][i]] = dic[matches['Referee'][i]] + matches['Cards'][i]
 
-plt.bar(dic.keys(), dic.values())
+colori_sfumati = [plt.cm.jet(i / len(ref_nationality)) for i in range(len(ref_nationality))]
+plt.bar(dic.keys(), dic.values(), color=colori_sfumati)
 plt.xlabel('Referee Nationality')
 plt.ylabel('Cards')
 plt.title('Total Number Of Cards Given By Referees Of A Given Nationality ')
@@ -178,7 +182,8 @@ mean_cards_by_ref_nat = {}
 for i in dic.keys():
   mean_cards_by_ref_nat[i] = (dic[i] / ref_nationality[i]).round(2)
 
-plt.bar(mean_cards_by_ref_nat.keys(), mean_cards_by_ref_nat.values())
+colori_sfumati = [plt.cm.gnuplot(i / len(ref_nationality)) for i in range(len(ref_nationality))]
+plt.bar(mean_cards_by_ref_nat.keys(), mean_cards_by_ref_nat.values(), color=colori_sfumati)
 plt.xlabel('Referee Nationality')
 plt.ylabel('Cards per match')
 plt.title('Which Are The Strictest Referees?')
@@ -243,7 +248,7 @@ italy = {'1 Place': winner, '2 Place': runner_up, '3 Place': third, '4 Place': f
 
 plt.pie(list(italy.values()), labels=list(italy.keys()), autopct='%1.1f%%')
 plt.title("How Will Italy's World Cup End If They Get Past The Quarter-Finals?")
-comment = '1 Place: ' + str(winner) + '\n2 Place: ' + str(runner_up) + '\n3 Place: ' + str(third) + '\n4 Place: ' + str(fourth)
+comment = '1 Place: ' + str(winner) + ' times' + '\n2 Place: ' + str(runner_up) + ' times' + '\n3 Place: ' + str(third) + ' time' + '\n4 Place: ' + str(fourth) + ' time'
 plt.text(1.02, 0.5, comment, ha='left', va='center', transform=plt.gcf().transFigure, fontsize=10)
 plt.show()
 
@@ -303,11 +308,12 @@ for i in range(len(matches)):
     else:
       Second_Second += 1
 
-combinations = {'1/1': First_First, '1/X': First_Draw, '1/2': First_Second,
-                'X/1': Draw_First, 'X/X': Draw_Draw, 'X/2': Draw_Second,
+combinations = {'1/1': First_First, '1/X': First_Draw,'X/1': Draw_First,
+                '1/2': First_Second, 'X/X': Draw_Draw, 'X/2': Draw_Second,
                 '2/1': Second_First, '2/X': Second_Draw, '2/2': Second_Second}
 
-plt.pie(list(combinations.values()), labels=list(combinations.keys()), autopct='%1.1f%%')
+plt.gcf().set_size_inches(6, 7)
+plt.pie(list(combinations.values()), labels=list(combinations.keys()), autopct='%1.1f%%', startangle=0)
 plt.title('First - Second Half Combinations')
 plt.show()
 
