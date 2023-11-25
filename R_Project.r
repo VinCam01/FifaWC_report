@@ -186,5 +186,204 @@ ggplot(agg_data, aes(x = Referee, y = TotalCards)) +
   ylab('Cards') +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
+#%% MEAN OF CARDS GIVEN BY REFEREES OF A GIVEN NATIONALITY
+##MEDIA SBAGLIATAAAAAAAA
+mean_cards_by_referee <- agg_data %>%
+  mutate(MeanCards = TotalCards / n()) %>%
+  select(Referee, MeanCards)
+
+ggplot(mean_cards_by_referee, aes(x = Referee, y = MeanCards)) +
+  geom_bar(stat = "identity", fill = "blue", color = "black") +
+  ggtitle('Which Are The Strictest Referees?') +
+  xlab('Referee Nationality') +
+  ylab('Cards per match') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+#%% HOW MANY GOAL HAS BEEN SCORED IN THESE SLOTS?
+#SLOT:  1-22 / 23-45 / 46-67 / 68-90
+estrai_minuti_gol_2 = function(a) {
+  minuti_gol = str_extract_all(as.character(a), "G(\\d+)")
+  minuti_gol = unlist(minuti_gol)
+  as.integer(gsub("G", "", minuti_gol))
+}
+players$Minuti_gol = sapply(players$Event, estrai_minuti_gol_2)
+
+goal_scored_in_1_22 = 0
+goal_scored_in_23_45 = 0
+goal_scored_in_46_67 = 0
+goal_scored_in_68_90 = 0
+
+for (i in players$Minuti_gol) {
+  if (length(i) > 0) {
+    for (minute in i) {
+      if (1 <= minute & minute < 23) {
+        goal_scored_in_1_22 <- goal_scored_in_1_22 + 1
+      } else if (23 <= minute & minute < 46) {
+        goal_scored_in_23_45 <- goal_scored_in_23_45 + 1
+      } else if (46 <= minute & minute < 68) {
+        goal_scored_in_46_67 <- goal_scored_in_46_67 + 1
+      } else if (68 <= minute & minute <= 90) {
+        goal_scored_in_68_90 <- goal_scored_in_68_90 + 1
+      }
+    }
+  }
+}
+
+slot = data.frame(
+  Time_slot = c('1-22', '23-45', '46-67', '68-90'),
+  Goals_scored = c(goal_scored_in_1_22, goal_scored_in_23_45, goal_scored_in_46_67, goal_scored_in_68_90)
+)
+
+barplot(slot$Goals_scored, names.arg = slot$Time_slot, xlab = 'Time slot', ylab = 'Goals scored', main = 'Number Of Goals Scored In Different Time Slots')
+
+#%% HOW MANY TIMES ITALY FINISH 1-2-3-4?
+winner = 0
+runner_up = 0
+third = 0
+fourth = 0
+
+for (i in wcups$Winner) {
+  if (i == 'Italy') {
+    winner = winner + 1
+  }
+}
+
+for (i in wcups$Runners.Up) {
+  if (i == 'Italy') {
+    runner_up = runner_up + 1
+  }
+}
+
+for (i in wcups$Third) {
+  if (i == 'Italy') {
+    third = third + 1
+  }
+}
+
+for (i in wcups$Fourth) {
+  if (i == 'Italy') {
+    fourth = fourth + 1
+  }
+}
+
+total = winner + runner_up + third + fourth
+percentages = c(winner, runner_up, third, fourth) / total * 100
+
+italy = data.frame(
+  Place = c('1 Place', '2 Place', '3 Place', '4 Place'),
+  Percent = percentages
+)
+
+ggplot(italy, aes(x = "", y = Percent, fill = Place)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  theme_void() +
+  labs(title = "How Will Italy's World Cup End If They Get Past The Quarter-Finals?") +
+  geom_text(aes(label = paste0(Place, ": ", round(Percent, 1), "%")), 
+            position = position_stack(vjust = 0.5))
+
+#%% CREATE THE COLUMNS 'Winner Match' and 'Winner Half Time'
+winner = character()
+first_half = character()
+
+for (i in 1:nrow(matches)) {
+  if (matches$Home.Team.Goals[i] > matches$Away.Team.Goals[i]) {
+    winner = c(winner, 'First')
+  } else if (matches$Home.Team.Goals[i] < matches$Away.Team.Goals[i]) {
+    winner = c(winner, 'Second')
+  } else {
+    winner = c(winner, 'Draw')
+  }
+  
+  if (matches$Half.time.Home.Goals[i] > matches$Half.time.Away.Goals[i]) {
+    first_half = c(first_half, 'First')
+  } else if (matches$Half.time.Home.Goals[i] < matches$Half.time.Away.Goals[i]) {
+    first_half = c(first_half, 'Second')
+  } else {
+    first_half = c(first_half, 'Draw')
+  }
+}
+
+matches$`Winner Match` = winner
+matches$`Winner Half Time` = first_half
+ 
+#%% Which are the most common combinations of first/second half result?
+#Possible combinations: 11 1X 12 XX X1 X2 21 2X 22
+#VEDERE COME POSIZIONARE LE ETICHETTE+PERCENTUALI
+First_First = 0
+First_Draw = 0
+First_Second = 0
+Draw_First = 0
+Draw_Draw = 0
+Draw_Second = 0
+Second_First = 0
+Second_Draw = 0
+Second_Second = 0
+
+for (i in 1:nrow(matches)) {
+  if (matches$`Winner Half Time`[i] == 'First') {
+    if (matches$`Winner Match`[i] == 'First') {
+      First_First = First_First + 1
+    } else if (matches$`Winner Match`[i] == 'Draw') {
+      First_Draw = First_Draw + 1
+    } else {
+      First_Second = First_Second + 1
+    }
+  } else if (matches$`Winner Half Time`[i] == 'Draw') {
+    if (matches$`Winner Match`[i] == 'First') {
+      Draw_First = Draw_First + 1
+    } else if (matches$`Winner Match`[i] == 'Draw') {
+      Draw_Draw = Draw_Draw + 1
+    } else {
+      Draw_Second = Draw_Second + 1
+    }
+  } else {
+    if (matches$`Winner Match`[i] == 'First') {
+      Second_First = Second_First + 1
+    } else if (matches$`Winner Match`[i] == 'Draw') {
+      Second_Draw = Second_Draw + 1
+    } else {
+      Second_Second = Second_Second + 1
+    }
+  }
+}
+
+total = sum(First_First, First_Draw, Draw_First, First_Second, Draw_Draw, Draw_Second, Second_First, Second_Draw, Second_Second)
+percentages = c(First_First, First_Draw, Draw_First, First_Second, Draw_Draw, Draw_Second, Second_First, Second_Draw, Second_Second) / total * 100
+
+combinations = data.frame(
+  Combination = c('1/1', '1/X', 'X/1', '1/2', 'X/X', 'X/2', '2/1', '2/X', '2/2'),
+  Count = c(First_First, First_Draw, Draw_First, First_Second, Draw_Draw, Draw_Second, Second_First, Second_Draw, Second_Second),
+  Percentage = percentages
+)
+
+pie(combinations$Count, labels = paste0(combinations$Combination, "\n", round(combinations$Percentage, 1), "%"), col = rainbow(length(combinations$Combination)), main = 'First - Second Half Combinations')
+
+#%% CREATE A NEW COLUMN '1Half = 2Half' IN THE MATCHES DATAFRAME
+#the value will be 1 if the result of first half will be the same of the second, 0 otherwise
+first_second = integer()
+
+for (i in 1:nrow(matches)) {
+  if (matches$`Winner Half Time`[i] == matches$`Winner Match`[i]) {
+    first_second = c(first_second, 1)
+  } else {
+    first_second = c(first_second, 0)
+  }
+}
+
+matches$`1Half = 2Half` = first_second
+matches
+
+#%% CORRELATION
+selected_columns = c('Home.Team.Goals', 'Away.Team.Goals', 'Attendance', 
+                      'Half.time.Home.Goals', 'Half.time.Away.Goals', 
+                      '1Half = 2Half', 'Cards')
+
+corr_target_1 = round(cor(matches[selected_columns]), 2)
+par(mar = c(1, 1, 1, 1))
+corrplot(corr_target_1, method = "square", type = "upper", order = "hclust", 
+         addCoef.col = "black", tl.col = "black", tl.srt = 45, tl.cex = 0.7,
+         col = colorRampPalette(c("blue", "white", "red"))(20))
 
 
