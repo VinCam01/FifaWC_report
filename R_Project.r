@@ -1,6 +1,7 @@
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(corrplot)
 
 options(max.print = 200)
 matches = read.csv('WorldCupMatches.csv')
@@ -67,13 +68,12 @@ ggplot(mean_attendance, aes(x = Year, y = mean_attendance)) +
   ggtitle("Trend of Attendance") +
   xlab("Year") +
   ylab("Attendance") +
+  scale_x_continuous(breaks = wcups$Year, labels = wcups$Year, expand = c(0, 0)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   theme_minimal()  
 
 #%% ADD THE 'YEAR' COLUMN IN THE 'PLAYERS' DATAFRAME
-players = players %>%
-  left_join(matches %>% select(MatchID, Year), by = "MatchID")
-players
+players = merge(players, matches[,c('MatchID', 'Year')], by = 'MatchID')
 
 #%% MOST USED SHIRT NUMBERS FROM 1954 TO 2014
 x = players[players$Year > 1950, ]
@@ -128,13 +128,15 @@ barplot(df$Goals, names.arg = df$Referee,
         cex.names = 0.4)
 grid(lty = 1, col = "gray")
 
-#%% Mean of goal scored in games directed by a referee from a particular nation
-##### NON FUNZIONA #####
-media_goals_per_nazione = df %>%
-  group_by(Referee) %>%
-  summarize(MediaGoals = mean(Goals))
+#%% MEAN OF GOAL SCORED IN GAMES DIRECTED BY A REFEREE FROM A PARTICULAR NATION
+ref_nationality_filtered = as.data.frame(ref_nationality_filtered)
+ref_nationality_filtered = ref_nationality_filtered %>%
+  rename(Referee = Var1, Games = Freq)
 
-ggplot(media_goals_per_nazione, aes(x = Referee, y = MediaGoals)) +
+summary_referee = merge(df, ref_nationality_filtered, by='Referee')
+summary_referee$Goals_per_match = round(summary_referee$Goals/summary_referee$Games, 2)
+
+ggplot(summary_referee, aes(x = Referee, y = Goals_per_match)) +
   geom_bar(stat = "identity", fill = "blue", color = "black") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))+
   labs(title = "Mean Of Goal Scored In Games Directed By A Referee From A Particular Nation",
@@ -157,47 +159,39 @@ for (i in seq_along(players$Event)) {
 }
 players$Yellow_or_Red = lst
 table(players$Yellow_or_Red)
-#MI VENGONO MENO 0 E MENO 1 ???
 
 #%% CREATE THE COLUMN 'Cards' IN THE MATCHES DATAFRAME
-card_per_match = numeric(length(players$MatchID))
-for (i in seq_along(players$MatchID)) {
-  if (!(players$MatchID[i] %in% names(card_per_match))) {
-    card_per_match[[as.character(players$MatchID[i])]] = players$Yellow_or_Red[i]
-  } else {
-    card_per_match[[as.character(players$MatchID[i])]] = card_per_match[[as.character(players$MatchID[i])]] + players$Yellow_or_Red[i]
-  }
-}
-
-matches$Cards = card_per_match[as.character(matches$MatchID)]
+cards_per_match = aggregate(players$Yellow_or_Red, by = list(players$MatchID), sum)
+colnames(cards_per_match) = c("MatchID", "Cards")
+matches = merge(matches, cards_per_match, by = "MatchID", all.x = TRUE)
+matches$Cards[is.na(matches$Cards)] = 0
+matches$Datetime = as.POSIXct(matches$Datetime, format = "%d %b %Y - %H:%M")
+matches = matches[order(matches$Datetime), ]
 print(matches)
 
 #%% TOTAL NUMBER OF CARDS GIVEN BY REFEREES OF A GIVEN NATIONALITY
-#PRENDE IN CONSIDERAZIONE TUTTI GLI ARBITRI 
 agg_data = matches %>%
   group_by(Referee) %>%
-  summarize(TotalCards = sum(Cards))
+  summarize(Cards = sum(Cards))
+summary_referee = merge(summary_referee, agg_data, by='Referee')
 
 
-ggplot(agg_data, aes(x = Referee, y = TotalCards)) +
+ggplot(summary_referee, aes(x = Referee, y = Cards)) +
   geom_bar(stat = "identity", fill = "blue", color = "black") +
   ggtitle('Total Number Of Cards Given By Referees Of A Given Nationality') +
   xlab('Referee Nationality') +
   ylab('Cards') +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.5, size = 5))
 
 #%% MEAN OF CARDS GIVEN BY REFEREES OF A GIVEN NATIONALITY
-##MEDIA SBAGLIATAAAAAAAA
-mean_cards_by_referee <- agg_data %>%
-  mutate(MeanCards = TotalCards / n()) %>%
-  select(Referee, MeanCards)
+summary_referee$Cards_per_match = round(summary_referee$Cards/summary_referee$Games, 2)
 
-ggplot(mean_cards_by_referee, aes(x = Referee, y = MeanCards)) +
+ggplot(summary_referee, aes(x = Referee, y = Cards_per_match)) +
   geom_bar(stat = "identity", fill = "blue", color = "black") +
   ggtitle('Which Are The Strictest Referees?') +
   xlab('Referee Nationality') +
   ylab('Cards per match') +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.5))
 
 
 #%% HOW MANY GOAL HAS BEEN SCORED IN THESE SLOTS?
@@ -235,7 +229,12 @@ slot = data.frame(
   Goals_scored = c(goal_scored_in_1_22, goal_scored_in_23_45, goal_scored_in_46_67, goal_scored_in_68_90)
 )
 
-barplot(slot$Goals_scored, names.arg = slot$Time_slot, xlab = 'Time slot', ylab = 'Goals scored', main = 'Number Of Goals Scored In Different Time Slots')
+barplot(slot$Goals_scored, 
+        names.arg = slot$Time_slot, 
+        xlab = 'Time slot', 
+        ylab = 'Goals scored',
+        ylim = c(0, 800),
+        main = 'Number Of Goals Scored In Different Time Slots')
 
 #%% HOW MANY TIMES ITALY FINISH 1-2-3-4?
 winner = 0
@@ -305,8 +304,8 @@ for (i in 1:nrow(matches)) {
   }
 }
 
-matches$`Winner Match` = winner
-matches$`Winner Half Time` = first_half
+matches$'Winner Match' = winner
+matches$'Winner Half Time' = first_half
  
 #%% Which are the most common combinations of first/second half result?
 #Possible combinations: 11 1X 12 XX X1 X2 21 2X 22
@@ -358,7 +357,10 @@ combinations = data.frame(
   Percentage = percentages
 )
 
-pie(combinations$Count, labels = paste0(combinations$Combination, "\n", round(combinations$Percentage, 1), "%"), col = rainbow(length(combinations$Combination)), main = 'First - Second Half Combinations')
+pie(combinations$Count, 
+    labels = paste0(combinations$Combination, "\n", round(combinations$Percentage, 1), "%"), 
+    col = rainbow(length(combinations$Combination)), 
+    main = 'First - Second Half Combinations')
 
 #%% CREATE A NEW COLUMN '1Half = 2Half' IN THE MATCHES DATAFRAME
 #the value will be 1 if the result of first half will be the same of the second, 0 otherwise
@@ -372,7 +374,7 @@ for (i in 1:nrow(matches)) {
   }
 }
 
-matches$`1Half = 2Half` = first_second
+matches$'1Half = 2Half' = first_second
 matches
 
 #%% CORRELATION
