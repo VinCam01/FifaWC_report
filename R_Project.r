@@ -30,25 +30,26 @@ summary(matches)
 summary(players)
 summary(wcups)
 
-#GOAL SCORED FOR EACH WORLD CUP
-#VEDERE SE AGGIUNGERE GRIGLIA
+#%% GOAL SCORED FOR EACH WORLD CUP
 ggplot(wcups, aes(x = Year, y = GoalsScored)) +
   geom_line() +
+  geom_point() +
   scale_x_continuous(breaks = wcups$Year, labels = wcups$Year, expand = c(0, 0)) +
   scale_y_continuous(breaks = seq(70, 175, 10), expand = c(0, 0)) +
   labs(title = "Goal Scored For Each World Cup")+
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-        panel.grid =element_blank())
+        panel.grid.major = element_line(colour = "gray", linetype = "dashed"),
+        panel.grid.minor = element_blank())
 
-#COUNTRY THAT WON MOST WORLD CUPS
+#%% COUNTRY THAT WON MOST WORLD CUPS
 wcups$Winner = ifelse(wcups$Winner == 'Germany FR', 'Germany', wcups$Winner)
 ggplot(wcups, aes(x = Winner, fill = Winner)) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_y_continuous(breaks = seq(0, 10, 1)) +
   labs(title = "Who Won Most World Cups?") +
-  scale_fill_manual(values = c("Brazil" = "yellow", "Germany" = "red", "Italy" = "green", "Argentina" = "skyblue")) +
+  scale_fill_manual(values = c("Brazil" = "gold2", "Germany" = "black", "Italy" = "green3", "Argentina" = "lightblue", 'England' = 'red', 'France' = 'blue', 'Uruguay' ='steelblue2', 'Spain' = 'red4' )) +
   theme_minimal()
 
 #%% TREND OF ATTENDANCE
@@ -61,7 +62,7 @@ mean_attendance
 rownames(mean_attendance) = NULL
 
 ggplot(mean_attendance, aes(x = Year, y = mean_attendance)) +
-  geom_point(color="skyblue") + 
+  geom_point(color="black") + 
   geom_line(color="skyblue")+
   ggtitle("Trend of Attendance") +
   xlab("Year") +
@@ -69,35 +70,29 @@ ggplot(mean_attendance, aes(x = Year, y = mean_attendance)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   theme_minimal()  
 
-# ADD THE 'YEAR' COLUMN IN THE 'PLAYERS' DATAFRAME
+#%% ADD THE 'YEAR' COLUMN IN THE 'PLAYERS' DATAFRAME
 players = players %>%
   left_join(matches %>% select(MatchID, Year), by = "MatchID")
 players
 
 #%% MOST USED SHIRT NUMBERS FROM 1954 TO 2014
 x = players[players$Year > 1950, ]
-x
 
-#VEDERE SE METTERE NUMERI SOTTO
 hist(x$Shirt.Number, breaks = 50, col = 'lightblue', border = 'black',
      xlab = 'Shirt Number', ylab = 'Number of times it has been used',
      main = 'Most Used Shirt Numbers From 1954 To 2014')
+axis(1, at = unique(x$Shirt.Number), labels = unique(x$Shirt.Number))
 
-table(x$Shirt.Number)
-
-#we modify the column in order to have just NAT in the Referee column
+#%% WE MODIFY THE COLUMN IN ORDER TO HAVE JUST NAT IN THE REFEREE COLUMN
 matches$Referee = str_extract(matches$Referee, "\\((.*?)\\)")
 matches$Referee = gsub("\\(|\\)", "", matches$Referee)
 print(matches)
 
-#HOW MANY REFEREE OF EACH NATION
+#%% HOW MANY MATCHES HAVE REFEREES OF EACH NATIONALITY DIRECTED?
 ref_nationality = table(matches$Referee)
 print(ref_nationality)
 
-#vediamo quali sono le nazionalità degli arbitri più frequenti, escludendo quelle minori di 5
-##NON SOME METTERE BENE I NOMI SOTTO LE COLONNE
-ref_nationality_filtered =ref_nationality[ref_nationality > 5]
-label_size=0.3
+ref_nationality_filtered =ref_nationality[ref_nationality > 5] #We only show values greater than 5 in the graph to make it more readable
 barplot(ref_nationality_filtered, 
         names.arg = names(ref_nationality_filtered), 
         xlab = 'Referee Nationality', 
@@ -105,11 +100,12 @@ barplot(ref_nationality_filtered,
         main = 'How Many Matches Have Referees Of Each Nationality Directed?',
         col = 'skyblue', 
         las = 2,
-        cex.axis = label_size,  
-        cex.names = label_size)
+        cex.axis = 1,  
+        cex.names = 0.4)
+grid(lty = 1, col = "gray")
 
 
-#Total number of goals scored in games refereed by a referee from a particular nation
+#%% TOTAL NUMBER OF GOALS SCORED IN GAMES REFEREED BY A REFEREE FROM A PARTICULAR NATION
 dic = list()
 for (referee in unique(matches$Referee)) {
   matches_referee = subset(matches, Referee == referee)
@@ -127,10 +123,13 @@ barplot(df$Goals, names.arg = df$Referee,
         main = "Total Number Of Goals Scored In Games Directed By Each Referee",
         xlab = "Referee Nationality",
         ylab = "Total Goals",
+        ylim = c(0, 170),
         las = 2,
-        cex.names = 0.7)
+        cex.names = 0.4)
+grid(lty = 1, col = "gray")
 
 #%% Mean of goal scored in games directed by a referee from a particular nation
+##### NON FUNZIONA #####
 media_goals_per_nazione = df %>%
   group_by(Referee) %>%
   summarize(MediaGoals = mean(Goals))
