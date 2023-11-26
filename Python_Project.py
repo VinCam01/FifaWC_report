@@ -343,71 +343,49 @@ plt.title('Correlation Heatmap')
 sns.heatmap(corr_target_1, annot = True, fmt='.2g',cmap= 'coolwarm')
 plt.show()
 
-#WC TOP 3
+#World Cup Podium
 winner = wcups['Winner'].value_counts()
-winner
-
 runnerup = wcups['Runners-Up'].value_counts()
-runnerup
-
 third = wcups['Third'].value_counts()
-third
 
-top_3_teams = pd.concat([winner, runnerup, third], axis = 1)
-top_3_teams.fillna(0, inplace = True)
-top_3_teams = top_3_teams.astype(int)
-top_3_teams
+wrt = pd.concat([winner, runnerup, third], axis = 1)
+wrt.fillna(0, inplace = True)
+wrt = wrt.astype(int)
+wrt
 
-top_3_teams['Total'] = top_3_teams['Winner'] + top_3_teams['Runners-Up'] + top_3_teams['Third']
-top_3_teams['Final'] = top_3_teams['Winner'] + top_3_teams['Runners-Up']
-top_3_teams
+wrt['Total'] = wrt['Winner'] + wrt['Runners-Up'] + wrt['Third']
+wrt['Final'] = wrt['Winner'] + wrt['Runners-Up']
+wrt
 
-top_3_teams.index.dtype
+wrt.index.dtype
+wrt.index = wrt.index.astype(str)
+wrt = wrt.reset_index(drop=False)
+wrt
 
-top_3_teams.index = top_3_teams.index.astype(str)
-top_3_teams = top_3_teams.reset_index(drop=False)
-top_3_teams
+wrt.rename(columns={'index': 'Team'},inplace = True)
+wrt.columns
 
-top_3_teams.rename(columns={'index': 'Team'},inplace = True)
-top_3_teams.columns
+countries = np.unique(matches[['Home Team Name', 'Away Team Name']].values)
 
-# Get list of unique countries joined WC
-all_countries_list = np.unique(matches[['Home Team Name', 'Away Team Name']].values)
+countries_df = pd.DataFrame(countries)
+countries_df.rename(columns={0: 'Team'},inplace = True)
 
-all_countries_df = pd.DataFrame(all_countries_list)
-all_countries_df.rename(columns={0: 'Team'},inplace = True)
+m_df = pd.merge(wrt,countries_df, on='Team', how='right')
+m_df.fillna(0, inplace=True)
+m_df
 
-# all_countries_df["Winner"] = 0
-# all_countries_df["Runners-Up"] = 0
-# all_countries_df["Third"]= 0
-# all_countries_df["Total"] = 0
-# all_countries_df["Final"] = 0
-
-# all_countries_df.set_index('Team')
-# top_3_teams.set_index('Team')
-
-# Info of all columns
-top_3_teams.info(verbose=True)
-
-# Types of all columns
-all_countries_df.info(verbose=True)
-
-merged_df = pd.merge(top_3_teams, all_countries_df, on='Team', how='right')
-merged_df.fillna(0, inplace=True)
-merged_df
-
-merged_df["Highest"] = merged_df.apply(lambda row: 'Winner' if row['Winner'] > 0 
+m_df["Highest"] = m_df.apply(lambda row: 'Winner' if row['Winner'] > 0 
                         else ('Runners-Up' if row['Runners-Up'] > 0 
                                 else ('Third' if row['Third'] > 0 else 'Qualified')), axis=1)
-merged_df
+m_df
 
-# create map
-fig = px.choropleth(merged_df, 
+# MAP
+map = px.choropleth(m_df, 
                     locations='Team',
                     locationmode='country names',
                     color='Highest',
                     hover_name='Team',
                     projection='natural earth')
 
-fig.show()
+map.show()
 
