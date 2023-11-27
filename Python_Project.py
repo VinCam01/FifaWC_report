@@ -403,3 +403,111 @@ maps = px.choropleth(m_df, locations='Team', locationmode='country names', color
 maps.write_html('mappa.html')
 maps.show()
 
+#%% COMPARISON OF WINNERS
+
+#GERMANY 2014
+g_2014 = players[(players['Year'] == 2014)]
+
+germany_2014 = g_2014[g_2014["Team Initials"].str.contains("GER", case=False, na=False)]
+
+germany_2014_scored_in_1_22=0
+germany_2014_scored_in_23_45=0
+germany_2014_scored_in_46_67=0
+germany_2014_scored_in_68_90=0
+germany_2014_scored_in_91_120=0
+
+for i in germany_2014['Minuti_gol']:
+  if i:
+    for minute in i:
+      if 1 <= minute < 23:
+        germany_2014_scored_in_1_22 += 1
+      elif 23 <= minute < 46:
+        germany_2014_scored_in_23_45 += 1
+      elif 46 <= minute < 68:
+        germany_2014_scored_in_46_67 += 1
+      elif 68 <= minute <= 90:
+        germany_2014_scored_in_68_90 += 1
+      elif 91<= minute<=120:
+        germany_2014_scored_in_91_120 +=1
+
+slot_germany_2014={'1-22':germany_2014_scored_in_1_22, '23-45':germany_2014_scored_in_23_45, '46-67':germany_2014_scored_in_46_67,'68-90':germany_2014_scored_in_68_90, '91-120': germany_2014_scored_in_91_120}
+
+#ITALY 2006
+
+i_2006 = players[(players['Year'] > 2002.0) & (players['Year'] < 2010.0)]
+
+italy_2006 = i_2006[i_2006["Team Initials"].str.contains("ITA", case=False, na=False)]
+
+italy_2006_scored_in_1_22=0
+italy_2006_scored_in_23_45=0
+italy_2006_scored_in_46_67=0
+italy_2006_scored_in_68_90=0
+italy_2006_scored_in_91_120=0
+
+for i in italy_2006['Minuti_gol']:
+  if i:
+    for minute in i:
+      if 1 <= minute < 23:
+        italy_2006_scored_in_1_22 += 1
+      elif 23 <= minute < 46:
+        italy_2006_scored_in_23_45 += 1
+      elif 46 <= minute < 68:
+        italy_2006_scored_in_46_67 += 1
+      elif 68 <= minute <= 90:
+        italy_2006_scored_in_68_90 += 1
+      elif 91<= minute<=120:
+        italy_2006_scored_in_91_120 +=1
+        
+slot_italy_2006={'1-22':italy_2006_scored_in_1_22, '23-45':italy_2006_scored_in_23_45, '46-67':italy_2006_scored_in_46_67,'68-90':italy_2006_scored_in_68_90, '91-120': italy_2006_scored_in_91_120}
+
+#BRAZIL 2002
+b_2002 = players[(players['Year'] > 1998.0) & (players['Year'] < 2006.0)]
+
+brazil_2002 = b_2002[b_2002["Team Initials"].str.contains("GER", case=False, na=False)]
+brazil_2002
+
+brazil_2002_scored_in_1_22=0
+brazil_2002_scored_in_23_45=0
+brazil_2002_scored_in_46_67=0
+brazil_2002_scored_in_68_90=0
+brazil_2002_scored_in_91_120=0
+
+for i in brazil_2002['Minuti_gol']:
+  if i:
+    for minute in i:
+      if 1 <= minute < 23:
+        brazil_2002_scored_in_1_22 += 1
+      elif 23 <= minute < 46:
+        brazil_2002_scored_in_23_45 += 1
+      elif 46 <= minute < 68:
+        brazil_2002_scored_in_46_67 += 1
+      elif 68 <= minute <= 90:
+        brazil_2002_scored_in_68_90 += 1
+      elif 91<= minute<=120:
+        brazil_2002_scored_in_91_120 +=1
+slot_brazil_2002={'1-22':brazil_2002_scored_in_1_22, '23-45':brazil_2002_scored_in_23_45, '46-67':brazil_2002_scored_in_46_67,'68-90':brazil_2002_scored_in_68_90, '91-120': brazil_2002_scored_in_91_120}
+
+
+
+ger2014 = pd.DataFrame(list(slot_germany_2014.items()), columns=['Slot', 'Score'])
+ita2006 = pd.DataFrame(list(slot_italy_2006.items()), columns=['Slot', 'Score'])
+bra2002 = pd.DataFrame(list(slot_brazil_2002.items()), columns=['Slot', 'Score'])
+
+
+plt.plot(ger2014['Slot'], ger2014['Score'], label = 'Germany 2014', marker='o', markerfacecolor='red', lw = 2, color='red')
+plt.plot(ita2006['Slot'], ita2006['Score'], label = 'Italy 2006', marker='o', markerfacecolor='blue', lw = 2, color='blue')
+plt.plot(bra2002['Slot'], bra2002['Score'], label = 'Brazil 2002', marker='o', markerfacecolor='gold', lw = 2, color='gold')
+
+plt.xlabel('World Cup')
+plt.ylabel('Mean of goal')
+plt.xticks(bra2002['Slot'], rotation = 'vertical')
+plt.yticks(range(1,20,1))
+plt.legend()
+plt.grid()
+plt.title('GOALS IN DIFFERENT TIME SLOTS - WORLD CUP WINNERS')
+plt.show()
+
+
+
+
+
