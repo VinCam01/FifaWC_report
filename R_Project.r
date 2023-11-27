@@ -2,6 +2,7 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(corrplot)
+library(stringr)
 
 options(max.print = 200)
 matches = read.csv('WorldCupMatches.csv')
@@ -196,10 +197,10 @@ ggplot(summary_referee, aes(x = Referee, y = Cards_per_match)) +
 
 #%% HOW MANY GOAL HAS BEEN SCORED IN THESE SLOTS?
 #SLOT:  1-22 / 23-45 / 46-67 / 68-90
-estrai_minuti_gol_2 = function(a) {
-  minuti_gol = str_extract_all(as.character(a), "G(\\d+)")
-  minuti_gol = unlist(minuti_gol)
-  as.integer(gsub("G", "", minuti_gol))
+estrai_minuti_gol_2 <- function(a) {
+  minuti_gol <- str_extract_all(as.character(a), "[GP](\\d+)")
+  minuti_gol <- unlist(minuti_gol)
+  as.integer(gsub("[GP]", "", minuti_gol))
 }
 players$Minuti_gol = sapply(players$Event, estrai_minuti_gol_2)
 
