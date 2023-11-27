@@ -196,7 +196,7 @@ plt.show()
 SLOT:  1-22 / 23-45 / 46-67 / 68-90
 '''
 def estrai_minuti_gol(a):
-    minuti_gol = re.findall(r'G(\d+)', str(a))
+    minuti_gol = re.findall(r'[GP](\d+)', str(a))
     return [int(x) for x in minuti_gol]
 
 players['Minuti_gol'] = players['Event'].apply(estrai_minuti_gol)
@@ -223,6 +223,31 @@ plt.bar(slot.keys(), slot.values())
 plt.xlabel('Time slot')
 plt.ylabel('Goals scored')
 plt.title('Number Of Goals Scored In Different Time Slots')
+plt.show()
+
+#%% MEAN OF GOALS IN GROUP STAGE MATCHES VS MEAN OF GOALS IN KNOCKOUT MATCHES
+matches['Stage'].unique()
+
+for i in range(len(matches['Stage'])):
+    if 'Group' in matches['Stage'][i] or matches['Stage'][i]  == 'Preliminary round' or matches['Stage'][i]  == 'First round':
+        matches['Stage'][i] = 'Group'
+    else:
+        matches['Stage'][i] = 'Knockout'
+      
+matches['total_goals'] = matches['Home Team Goals'] + matches['Away Team Goals']
+
+tab1 = matches.groupby(['Year', 'Stage'])['total_goals'].mean().reset_index()
+tab2 = tab1.pivot(index='Year', columns='Stage', values='total_goals').reset_index()
+tab2_mod = tab2[tab2['Year'] >= 1954]
+
+plt.plot(tab2_mod['Year'], tab2_mod['Group'], label = 'Group Stage', marker='o', markerfacecolor='red', lw = 2, color='red')
+plt.plot(tab2_mod['Year'], tab2_mod['Knockout'],label = 'Knockout Stage',  marker='o', markerfacecolor='#5A9BD5', lw = 2, color='#5A9BD5')
+plt.xlabel('World Cup')
+plt.ylabel('Mean of goal')
+plt.xticks(tab2_mod['Year'], rotation = 'vertical')
+plt.legend()
+plt.grid()
+plt.title('MEAN OF GOALS IN GROUP STAGE MATCHES VS MEAN OF GOALS IN KNOCKOUT MATCHES')
 plt.show()
 
 #%% HOW MANY TIMES ITALY FINISH 1-2-3-4?
