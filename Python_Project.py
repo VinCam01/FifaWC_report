@@ -370,27 +370,23 @@ plt.title('Correlation Heatmap')
 sns.heatmap(corr_target_1, annot = True, fmt='.2g',cmap= 'coolwarm')
 plt.show()
 
-#World Cup Podium
+#%%World Cup Podium
 winner = wcups['Winner'].value_counts()
 runnerup = wcups['Runners-Up'].value_counts()
 third = wcups['Third'].value_counts()
 
-wrt = pd.concat([winner, runnerup, third], axis = 1)
+wrt = pd.concat([winner, runnerup, third], keys=['Winner', 'Runners-Up', 'Third'], axis = 1)
 wrt.fillna(0, inplace = True)
 wrt = wrt.astype(int)
-wrt
 
 wrt['Total'] = wrt['Winner'] + wrt['Runners-Up'] + wrt['Third']
 wrt['Final'] = wrt['Winner'] + wrt['Runners-Up']
-wrt
 
 wrt.index.dtype
 wrt.index = wrt.index.astype(str)
 wrt = wrt.reset_index(drop=False)
-wrt
 
 wrt.rename(columns={'index': 'Team'},inplace = True)
-wrt.columns
 
 countries = np.unique(matches[['Home Team Name', 'Away Team Name']].values)
 
@@ -399,20 +395,11 @@ countries_df.rename(columns={0: 'Team'},inplace = True)
 
 m_df = pd.merge(wrt,countries_df, on='Team', how='right')
 m_df.fillna(0, inplace=True)
-m_df
 
-m_df["Highest"] = m_df.apply(lambda row: 'Winner' if row['Winner'] > 0 
-                        else ('Runners-Up' if row['Runners-Up'] > 0 
-                                else ('Third' if row['Third'] > 0 else 'Qualified')), axis=1)
-m_df
+m_df["Highest"] = m_df.apply(lambda row: 'Winner' if row['Winner'] > 0 else ('Runners-Up' if row['Runners-Up'] > 0 else ('Third' if row['Third'] > 0 else 'Qualified')), axis=1)
 
-# MAP
-map = px.choropleth(m_df, 
-                    locations='Team',
-                    locationmode='country names',
-                    color='Highest',
-                    hover_name='Team',
-                    projection='natural earth')
-
-map.show()
+#%% MAP
+maps = px.choropleth(m_df, locations='Team', locationmode='country names', color='Highest', hover_name='Team', projection='natural earth')
+maps.write_html('mappa.html')
+maps.show()
 
